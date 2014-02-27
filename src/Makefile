@@ -67,6 +67,7 @@ xpi_built := install.rdf \
              icon.png \
              $(wildcard skin/*.css) \
              $(wildcard skin/*.png) \
+             $(wildcard content/*.html) \
 
 $(xpi_file): $(xpi_built)
 	@echo "Creating XPI file."

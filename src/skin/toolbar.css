@@ -17,18 +17,18 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 @-moz-document url("chrome://browser/content/browser.xul") {
-  #aus-hello-button {
-    list-style-image: url("chrome://aus-hello/skin/icon16.png");
+  #aus-view-button {
+    list-style-image: url("chrome://aus-view/skin/icon16.png");
   }
 
-  #aus-hello-button[cui-areatype="menu-panel"],
-  toolbarpaletteitem[place="palette"] > #aus-hello-button {
-    list-style-image: url("chrome://aus-hello/skin/icon32.png");
+  #aus-view-button[cui-areatype="menu-panel"],
+  toolbarpaletteitem[place="palette"] > #aus-view-button {
+    list-style-image: url("chrome://aus-view/skin/icon32.png");
   }
 
   /* Necessary to mimic the behavior of all other buttons, which are darker when
     pressed.
-  #aus-hello-button:hover:active:not([disabled="true"]):not([cui-areatype="menu-panel"]) {
-    list-style-image: url("chrome://aus-hello/skin/icon32-dark.png");
+  #aus-view-button:hover:active:not([disabled="true"]):not([cui-areatype="menu-panel"]) {
+    list-style-image: url("chrome://aus-view/skin/icon32-dark.png");
   }*/
 }
