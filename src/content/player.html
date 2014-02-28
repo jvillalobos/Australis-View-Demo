@@ -7,12 +7,12 @@
     /* <![CDATA[ */
       function play() {
         var audio = document.getElementById("audio");
-        var track = document.getElementById("track");
+        var tracks = document.getElementById("tracks");
 
         // audio.src = "https://ia601504.us.archive.org/0/items/Strapawnz-12554/k9d_-_01_-_Pretense.mp3";
-        audio.src = track.value;
-        a.addEventListener("canplay", function(){ a.play(); });
-        a.load();
+        audio.src = tracks.value;
+        audio.addEventListener("canplay", function(){ audio.play(); });
+        audio.load();
       }
     /* ]]> */
     </script>
@@ -20,10 +20,10 @@
   <body>
     <div style="display: flex;  flex-direction: column; justify-content: center; min-height: 5em;">
       <audio id="audio" preload="auto"></audio>
-      <select id="track" disabled="true">
+      <select id="tracks" disabled="true">
         <option selected="true">No tracks<option>
       </select>
-      <button type="button" disabled="true" onclick="play()">Play</button>
+      <button id="play-button" type="button" disabled="true" onclick="play()">Play</button>
     </div>
   </body>
 </html>

@@ -68,12 +68,72 @@ let AusView = {
         label : "Hello Button",
         tooltiptext : "Hello!",
         onViewShowing : function (aEvent) {
+          console.log("View is showing.");
+
           let doc = aEvent.target.ownerDocument;
-          let iframe = doc.getElementById("aus-view-iframe");
+          let contentDoc;
+          let audioURLs = [];
+          let links;
+          let url;
+
+          // extract audio URLs from the current page.
+          contentDoc = doc.defaultView.gBrowser.contentDocument;
+
+          if (null != contentDoc) {
+            links = contentDoc.getElementsByTagName("a");
+
+            for (let i = 0; i < links.length; i++) {
+              url = links[i].getAttribute("href");
+
+              if ((null != url) && (0 < url.length)) {
+                if ("/" == url[0]) {
+                  url =
+                    contentDoc.location.protocol + "//" +
+                    contentDoc.location.host + url;
+                }
+
+                if (/^http(s)?:\/\/[^?]*\.(mp3|ogg)$/.test(url)) {
+                  audioURLs.push(url);
+                }
+              }
+            }
+          }
+
+          console.log("Audio URLs found: " + audioURLs.length);
+
+          // if we got some audio URLs, add them to the options list.
+          if (0 < audioURLs.length) {
+            let audioDoc =
+              doc.getElementById("aus-view-iframe").contentDocument;
+            let audioSelect = audioDoc.getElementById("tracks");
+            let placeholder = audioSelect.firstElementChild;
+            let optionElem;
+            let trackURL;
+
+            // remove "no tracks" placeholder.
+            placeholder.parentNode.removeChild(placeholder);
+
+            for (let i = 0; i < audioURLs.length; i++) {
+              trackURL = audioURLs[i];
+
+              console.log("Track URL: " + trackURL);
+
+              optionElem = audioDoc.createElement("option");
+              optionElem.setAttribute(
+                "label", trackURL.substring(trackURL.lastIndexOf("/") + 1));
+              optionElem.setAttribute("value", trackURL);
+              audioSelect.appendChild(optionElem);
+            }
+
+            audioSelect.disabled = false;
+            audioDoc.getElementById("play-button").disabled = false;
+
+            console.log("audioSelect.children.length: " + audioSelect.children.length);
+            console.log("audioSelect.parentNode.innerHTML: " + audioSelect.parentNode.innerHTML);
+          }
         },
         onViewHiding : function (aEvent) {
-          let doc = aEvent.target.ownerDocument;
-          let iframe = doc.getElementById("aus-view-iframe");
+          // Nothing to do here.
         }
       });
   },
@@ -109,7 +169,7 @@ let AusView = {
       iframe.setAttribute("src", "chrome://aus-view/content/player.html");
 
       panel.appendChild(iframe);
-      doc.documentElement.appendChild(panel);
+      doc.getElementById("mainPopupSet").appendChild(panel);
     },
 
     /**
