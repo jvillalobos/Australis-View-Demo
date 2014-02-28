@@ -39,6 +39,8 @@ function shutdown(aData, aReason) {
 }
 
 let AusView = {
+  _timers : [],
+
   init : function() {
     let enumerator = Services.wm.getEnumerator("navigator:browser");
     let io =
@@ -68,74 +70,85 @@ let AusView = {
         label : "Hello Button",
         tooltiptext : "Hello!",
         onViewShowing : function (aEvent) {
-          console.log("View is showing.");
-
           let doc = aEvent.target.ownerDocument;
-          let contentDoc;
-          let audioURLs = [];
-          let links;
-          let url;
+          // since the panelview node is moved and the iframe is reset in some
+          // cases, this hack ensures that the code runs once the iframe is
+          // valid.
+          let timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 
-          // extract audio URLs from the current page.
-          contentDoc = doc.defaultView.gBrowser.contentDocument;
-
-          if (null != contentDoc) {
-            links = contentDoc.getElementsByTagName("a");
-
-            for (let i = 0; i < links.length; i++) {
-              url = links[i].getAttribute("href");
-
-              if ((null != url) && (0 < url.length)) {
-                if ("/" == url[0]) {
-                  url =
-                    contentDoc.location.protocol + "//" +
-                    contentDoc.location.host + url;
-                }
-
-                if (/^http(s)?:\/\/[^?]*\.(mp3|ogg)$/.test(url)) {
-                  audioURLs.push(url);
-                }
-              }
-            }
-          }
-
-          console.log("Audio URLs found: " + audioURLs.length);
-
-          // if we got some audio URLs, add them to the options list.
-          if (0 < audioURLs.length) {
-            let audioDoc =
-              doc.getElementById("aus-view-iframe").contentDocument;
-            let audioSelect = audioDoc.getElementById("tracks");
-            let placeholder = audioSelect.firstElementChild;
-            let optionElem;
-            let trackURL;
-
-            // remove "no tracks" placeholder.
-            placeholder.parentNode.removeChild(placeholder);
-
-            for (let i = 0; i < audioURLs.length; i++) {
-              trackURL = audioURLs[i];
-
-              console.log("Track URL: " + trackURL);
-
-              optionElem = audioDoc.createElement("option");
-              optionElem.setAttribute(
-                "label", trackURL.substring(trackURL.lastIndexOf("/") + 1));
-              optionElem.setAttribute("value", trackURL);
-              audioSelect.appendChild(optionElem);
-            }
-
-            audioSelect.disabled = false;
-            audioDoc.getElementById("play-button").disabled = false;
-
-            console.log("audioSelect.children.length: " + audioSelect.children.length);
-            console.log("audioSelect.parentNode.innerHTML: " + audioSelect.parentNode.innerHTML);
-          }
+          timer.initWithCallback(
+            { notify : function() { AusView.showAudioPanel(doc); } }, 100,
+            Ci.nsITimer.TYPE_ONE_SHOT);
+          AusView._timers.push(timer);
         },
         onViewHiding : function (aEvent) {
-          // Nothing to do here.
+          let doc = aEvent.target.ownerDocument;
+          // reload the iframe so that it is reset in all cases.
+          doc.getElementById("aus-view-iframe").webNavigation.
+            reload(Ci.nsIWebNavigation.LOAD_FLAGS_NONE);
         }
       });
+  },
+
+  showAudioPanel : function(aDocument) {
+    let contentDoc;
+    let audioURLs = [];
+    let links;
+    let url;
+
+    // extract audio URLs from the current page.
+    contentDoc = aDocument.defaultView.gBrowser.contentDocument;
+
+    if (null != contentDoc) {
+      links = contentDoc.getElementsByTagName("a");
+
+      for (let i = 0; i < links.length; i++) {
+        url = links[i].getAttribute("href");
+
+        if ((null != url) && (0 < url.length)) {
+          if ("/" == url[0]) {
+            url =
+              contentDoc.location.protocol + "//" +
+              contentDoc.location.host + url;
+          }
+
+          if (/^http(s)?:\/\/[^?]*\.(mp3|ogg)$/.test(url)) {
+            audioURLs.push(url);
+          }
+        }
+      }
+    }
+
+    console.log("Audio URLs found: " + audioURLs.length);
+
+    // if we got some audio URLs, add them to the options list.
+    if (0 < audioURLs.length) {
+      let audioDoc =
+        aDocument.getElementById("aus-view-iframe").contentDocument;
+      let audioSelect = audioDoc.getElementById("tracks");
+      let placeholder = audioSelect.firstElementChild;
+      let optionElem;
+      let trackURL;
+
+      // remove "no tracks" placeholder.
+      placeholder.parentNode.removeChild(placeholder);
+
+      for (let i = 0; i < audioURLs.length; i++) {
+        trackURL = audioURLs[i];
+
+        console.log("Track URL: " + trackURL);
+
+        optionElem = audioDoc.createElement("option");
+        optionElem.textContent =
+          trackURL.substring(trackURL.lastIndexOf("/") + 1);
+        optionElem.setAttribute("value", trackURL);
+        audioSelect.appendChild(optionElem);
+      }
+
+      audioSelect.disabled = false;
+      audioSelect.selectedIndex = 0;
+      audioDoc.getElementById("play-button").disabled = false;
+    }
   },
 
   uninit : function() {

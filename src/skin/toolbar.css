@@ -31,4 +31,8 @@
   #aus-view-button:hover:active:not([disabled="true"]):not([cui-areatype="menu-panel"]) {
     list-style-image: url("chrome://aus-view/skin/icon32-dark.png");
   }*/
+
+  #aus-view-panel {
+    width: 20em;
+  }
 }
