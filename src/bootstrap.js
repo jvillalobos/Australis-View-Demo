@@ -43,17 +43,6 @@ let AusView = {
 
   init : function() {
     let enumerator = Services.wm.getEnumerator("navigator:browser");
-    let io =
-      Cc["@mozilla.org/network/io-service;1"].
-        getService(Ci.nsIIOService);
-
-    // the 'style' directive isn't supported in chrome.manifest for boostrapped
-    // extensions, so this is the manual way of doing the same.
-    this._ss =
-      Cc["@mozilla.org/content/style-sheet-service;1"].
-        getService(Ci.nsIStyleSheetService);
-    this._uri = io.newURI("chrome://aus-view/skin/toolbar.css", null, null);
-    this._ss.loadAndRegisterSheet(this._uri, this._ss.USER_SHEET);
 
     while (enumerator.hasMoreElements()) {
       this.windowListener.addUI(enumerator.getNext());
@@ -161,10 +150,6 @@ let AusView = {
     while (enumerator.hasMoreElements()) {
       this.windowListener.removeUI(enumerator.getNext());
     }
-
-    if (this._ss.sheetRegistered(this._uri, this._ss.USER_SHEET)) {
-      this._ss.unregisterSheet(this._uri, this._ss.USER_SHEET);
-    }
   },
 
   windowListener : {
@@ -182,7 +167,12 @@ let AusView = {
       iframe.setAttribute("src", "chrome://aus-view/content/player.html");
 
       panel.appendChild(iframe);
-      doc.getElementById("mainPopupSet").appendChild(panel);
+      doc.getElementById("PanelUI-multiView").appendChild(panel);
+
+      this._uri =
+        Services.io.newURI("chrome://aus-view/skin/toolbar.css", null, null);
+      aWindow.QueryInterface(Ci.nsIInterfaceRequestor).
+        getInterface(Ci.nsIDOMWindowUtils).loadSheet(this._uri, 1);
     },
 
     /**
@@ -193,6 +183,9 @@ let AusView = {
       let panel = doc.getElementById("aus-view-panel");
 
       panel.parentNode.removeChild(panel);
+
+      aWindow.QueryInterface(Ci.nsIInterfaceRequestor).
+        getInterface(Ci.nsIDOMWindowUtils).removeSheet(this._uri, 1);
     },
 
     onOpenWindow : function(aXULWindow) {
