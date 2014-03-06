@@ -197,9 +197,9 @@ let AusView = {
 
       // Wait for it to finish loading
       domWindow.addEventListener(
-        "load",
+        "DOMContentLoaded",
         function listener() {
-          domWindow.removeEventListener("load", listener, false);
+          domWindow.removeEventListener("DOMContentLoaded", listener, false);
           // If this is a browser window then setup its UI
           if (domWindow.document.documentElement.getAttribute("windowtype") ==
               "navigator:browser") {
